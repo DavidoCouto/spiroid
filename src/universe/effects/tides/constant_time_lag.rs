@@ -12,20 +12,21 @@ pub use stellar_inertial::Inertial;
 // 2019). Produces the tidal torque on the star, from which physics.rs derives the stellar
 // spin and the semi-major axis; circular coplanar orbit.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
-pub struct StellarConstantTimeLag {
+pub struct StellarEquilibriumConstantTimeLag {
     pub equilibrium: Equilibrium,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
+pub struct StellarDynamicalConstantTimeLag {
     pub inertial: Inertial,
 }
 
-impl StellarConstantTimeLag {
+impl StellarEquilibriumConstantTimeLag {
     // This is a re-write of Eq. 3 and 19 from Benbakoura et al. 2019
     // without the factors that are in the function semi_major_axis_13_div_2_derivative in physics.rs
     // The a^-6 is here to compensate the a^6 in physics.rs
-    pub fn stellar_tidal_torque(&self, star: &Star, planet: &Planet) -> f64 {
-        let total_dissipation = 1. / self.equilibrium.tidal_quality(star, planet)
-            + 1. / self.inertial.tidal_quality(star, planet);
-
-        let tidal_quality = 1. / total_dissipation;
+    pub fn stellar_equilibrium_tidal_torque(&self, star: &Star, planet: &Planet) -> f64 {
+        let tidal_equilibrium_quality = self.equilibrium.tidal_quality(star, planet);
         // Smoothing parameter when tidal frequency is 0
         let depth = 1e-8;
         -(9. / 4.)
@@ -34,7 +35,25 @@ impl StellarConstantTimeLag {
             * planet.semi_major_axis.powi(-6)
             * tanh!(star.tidal_frequency / depth)
             * star.radius.powi(5)
-            / tidal_quality
+            / tidal_equilibrium_quality
+    }
+}
+
+impl StellarDynamicalConstantTimeLag {
+    // This is a re-write of Eq. 3 and 19 from Benbakoura et al. 2019
+    // without the factors that are in the function semi_major_axis_13_div_2_derivative in physics.rs
+    // The a^-6 is here to compensate the a^6 in physics.rs
+    pub fn stellar_dynamical_tidal_torque(&self, star: &Star, planet: &Planet) -> f64 {
+        let tidal_dynamical_quality = self.inertial.tidal_quality(star, planet);
+        // Smoothing parameter when tidal frequency is 0
+        let depth = 1e-8;
+        -(9. / 4.)
+            * planet.mass.powi(2)
+            * GRAVITATIONAL
+            * planet.semi_major_axis.powi(-6)
+            * tanh!(star.tidal_frequency / depth)
+            * star.radius.powi(5)
+            / tidal_dynamical_quality
     }
 }
 
