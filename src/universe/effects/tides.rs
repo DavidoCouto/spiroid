@@ -2,7 +2,7 @@ pub(crate) mod kaula;
 pub use kaula::{Kaula, SpectrumFile};
 
 pub(crate) mod constant_time_lag;
-pub use constant_time_lag::{PlanetaryConstantTimeLag, PlanetarySpin, StellarConstantTimeLag};
+pub use constant_time_lag::{PlanetaryConstantTimeLag, PlanetarySpin, StellarEquilibriumConstantTimeLag, StellarDynamicalConstantTimeLag};
 
 use crate::universe::particles::{Planet, Star};
 
@@ -16,7 +16,9 @@ pub enum TidalModel {
     Disabled,
     // Stellar tide of Benbakoura et al. (2019): equilibrium tide (sigma_bar_star, Bolmont & Mathis
     // 2016 Eq. 8, or Zahn) plus the frequency-averaged dynamical tide. Star only.
-    StellarConstantTimeLag(StellarConstantTimeLag),
+    StellarEquilibriumConstantTimeLag(StellarEquilibriumConstantTimeLag),
+    StellarDynamicalConstantTimeLag(StellarDynamicalConstantTimeLag),
+    StellarConstantTimeLag(StellarEquilibriumConstantTimeLag, StellarDynamicalConstantTimeLag),
     // Planetary tide of Hut (1981) / Leconte et al. (2010): constant time lag k2 delta_t of
     // the planet, any eccentricity, coplanar. Planet only.
     PlanetaryConstantTimeLag(PlanetaryConstantTimeLag),
@@ -29,9 +31,19 @@ impl TidalModel {
             // The planetary model is never set on the star (refused in `Particle::initialise`):
             // its orbit and spin derivatives are computed in physics.rs.
             TidalModel::Disabled | TidalModel::PlanetaryConstantTimeLag(_) => 0.0,
-            TidalModel::StellarConstantTimeLag(constant_time_lag) => {
+            // Equilibrium component
+            TidalModel::StellarEquilibriumConstantTimeLag(equilibrium) => {
+                equilibrium.stellar_equilibrium_tidal_torque(star, planet)
+            }
+            // Dynamical component
+            TidalModel::StellarDynamicalConstantTimeLag(dynamical) => {
+                dynamical.stellar_dynamical_tidal_torque(star, planet)
+            }
+            // Both component
+            TidalModel::StellarConstantTimeLag(equilibrium, dynamical) => {
                 // requires tidal_frequency
-                constant_time_lag.stellar_tidal_torque(star, planet)
+                equilibrium.stellar_equilibrium_tidal_torque(star, planet)
+                + dynamical.stellar_dynamical_tidal_torque(star, planet)
             }
             // Stellar tide with the kaula model: the star is the deformed body.
             // Requires `refresh_kaula_star` to have been called for the current state.
