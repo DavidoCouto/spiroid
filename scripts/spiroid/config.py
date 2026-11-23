@@ -172,20 +172,20 @@ def make_stars(star_base, effects):
         if star_ctl:
             body["tides"] = {
                 "StellarConstantTimeLag": [
-                    {"equilibrium": {"SigmaBarStar": sigma_bar}},
-                    {"inertial": "FrequencyAveraged"},
+                    {"equilibrium": named["stellar_equilibrium_tide"]},
+                    {"inertial": named["stellar_dynamical_tide"]},
                 ]
             }
         elif star_ctl_eq:
             body["tides"] = {
                 "StellarEquilibriumConstantTimeLag": {
-                    "equilibrium": {"SigmaBarStar": sigma_bar}
+                    "equilibrium": named["stellar_equilibrium_tide"]
                 }
             }
         elif star_ctl_dyn:
             body["tides"] = {
                 "StellarDynamicalConstantTimeLag": {
-                    "inertial": "FrequencyAveraged"
+                    "inertial": named["stellar_dynamical_tide"]
                 }
             }
 

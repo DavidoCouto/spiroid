@@ -116,9 +116,9 @@ def effect_setup():
         "STAR_EVOLUTION_ENABLED": [True],
         # Stellar tides, one model at most: the kaula stellar tide reads SPECTRUM_FILE above.
         "STAR_TIDES_KAULA_ENABLED": [False],
-        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [False],
+        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [True],
         "STAR_TIDES_CTL_DYNAMICAL_ENABLED": [False],
-        "STAR_TIDES_CTL_ENABLED": [True],
+        "STAR_TIDES_CTL_ENABLED": [False],
         # Planetary tides, one model at most.
         "PLANET_TIDES_KAULA_ENABLED": [False],
         "PLANET_TIDES_CTL_ENABLED": [False],
@@ -220,6 +220,8 @@ def star_setup(effects):
         # Keep this key after the seven above (they are unpacked by position in config.py).
         "wind_torque_prefactor": [TRACK["prefactor"]],
         "kaula_spectrum_file": [None],  # Do not edit.
+        "stellar_equilibrium_tide": ["Disabled"],  # Do not edit.
+        "stellar_dynamical_tide": ["Disabled"],    # Do not edit.
     }
 
     if effects["MAGNETIC_EFFECT_ENABLED"]:
@@ -244,7 +246,10 @@ def star_setup(effects):
         star_base["kaula_spectrum_file"] = [SPECTRUM_FILE]
 
     if effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"] or effects["STAR_TIDES_CTL_ENABLED"]:
-        star_base["sigma_bar"] = [1.0e-6]
+        star_base["stellar_equilibrium_tide"] = [{"SigmaBarStar": 1.0e-6}]
+    
+    if effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"] or effects["STAR_TIDES_CTL_ENABLED"]:
+        star_base["stellar_dynamical_tide"] = ["FrequencyAveraged"]
 
     return star_base
 
