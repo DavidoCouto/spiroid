@@ -138,8 +138,10 @@ def make_stars(star_base, effects):
             star["wind_torque_prefactor"] = named["wind_torque_prefactor"]
 
         star_kaula = effects["STAR_TIDES_KAULA_ENABLED"]
+        star_ctl_eq = effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"]
+        star_ctl_dyn = effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"]
         star_ctl = effects["STAR_TIDES_CTL_ENABLED"]
-        if star_kaula and star_ctl:
+        if star_kaula and (star_ctl_eq or star_ctl_dyn or star_ctl):
             raise ValueError(
                 "one tidal model per body: STAR_TIDES_KAULA_ENABLED and STAR_TIDES_CTL_ENABLED cannot both be enabled"
             )
@@ -162,13 +164,32 @@ def make_stars(star_base, effects):
 
         # Constant time lag stellar tide (Benbakoura et al. 2019): equilibrium tide with
         # sigma_bar_star plus the frequency-averaged dynamical tide.
+        if sum([star_ctl_eq, star_ctl_dyn, star_ctl]) > 1:
+            raise ValueError(
+                "Choose only one stellar CTL variant among STAR_TIDES_CTL_EQUILIBRIUM_ENABLED, "
+                "STAR_TIDES_CTL_DYNAMICAL_ENABLED and STAR_TIDES_CTL_ENABLED (both)"
+            )
         if star_ctl:
             body["tides"] = {
-                "StellarConstantTimeLag": {
-                    "equilibrium": {"SigmaBarStar": 1e-06},
-                    "inertial": "FrequencyAveraged",
+                "StellarConstantTimeLag": [
+                    {"equilibrium": {"SigmaBarStar": 1e-06}},
+                    {"inertial": "FrequencyAveraged"},
+                ]
+            }
+        elif star_ctl_eq:
+            body["tides"] = {
+                "StellarEquilibriumConstantTimeLag": {
+                    "equilibrium": {"SigmaBarStar": 1e-06}
                 }
             }
+        elif star_ctl_dyn:
+            body["tides"] = {
+                "StellarDynamicalConstantTimeLag": {
+                    "inertial": "FrequencyAveraged"
+                }
+            }
+
+
         if effects["MAGNETIC_EFFECT_ENABLED"]:
             body["magnetism"] = {"Wind": {"footpoint_conductance": footpoint_conductance}}
 
@@ -215,7 +236,9 @@ def generate_all_effect_combinations(input_dict):
         "MAGNETIC_EFFECT_ENABLED": "magnetism",
         "STAR_EVOLUTION_ENABLED": "star_evolution",
         "STAR_TIDES_KAULA_ENABLED": "star_kaula_tides",
-        "STAR_TIDES_CTL_ENABLED": "star_ctl_tides",
+        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": "star_ctl_equilibrium_tides",
+        "STAR_TIDES_CTL_DYNAMICAL_ENABLED": "star_ctl_dynamical_tides",
+        "STAR_TIDES_CTL_ENABLED": "star_ctl_both_tides",
         "PLANET_TIDES_KAULA_ENABLED": "planet_kaula_tides",
         "PLANET_TIDES_CTL_ENABLED": "planet_ctl_tides",
         "WIND_ENABLED": "wind",

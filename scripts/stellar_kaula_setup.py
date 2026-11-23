@@ -62,15 +62,21 @@ ROTATORS = {
         "median": {"period_d": 5.0, "disk_lifetime_yr": 6.0e6, "coupling_yr": 28e6},
         "fast": {"period_d": 1.4, "disk_lifetime_yr": 2.0e6, "coupling_yr": 10e6},
     },
+    "David": {
+        "slow": {"period_d": 9.0, "disk_lifetime_yr": 7.4e6, "coupling_yr": 106.3e6},
+        "median": {"period_d": 6.3, "disk_lifetime_yr": 6.3e6, "coupling_yr": 79.9e6},
+        "intermediate": {"period_d": 3.3, "disk_lifetime_yr": 4.8e6, "coupling_yr": 47.3e6},
+        "fast": {"period_d": 1.3, "disk_lifetime_yr": 3.2e6, "coupling_yr": 22.6e6},
+    }
 }
-REFERENCE = "GB15"  # "GB13" or "GB15"
+REFERENCE = "David"  # "GB13" or "GB15"
 ROTATOR = "fast"  # "slow", "median" or "fast"
 
 # Stellar track, turnover-time option and the wind prefactor (J) calibrated with it
 # (solar period 25.38 d at 4.567 Gyr).
 TRACK = {
-    "prefactor": 8e23,
-    "evolution": {"Starevol": {"star_file_path": "examples/data/star/evolution/starevol_m1p00_2026.csv",
+    "prefactor": 5.9e23,  # for "David", slow: 8.7e23, median: 8.1e23, intermediate: 7.1e23, fast: 5.9e23
+    "evolution": {"Starevol": {"star_file_path": "/home/docouto/Thesis_Data/evol_m0p80.csv",
                                "convective_turnover_time_mode": "FromFile"}},
 }
 
@@ -91,9 +97,9 @@ def simulator_setup():
         # Decription of the science case.
         "decription": "",
         # Simulation start time, seconds (from years).
-        "start_time": SECONDS_IN_YEAR * 2.0e6,  # the FromFile mode needs the radiative core (1.69 Myr on this track); earlier starts stall
+        "start_time": SECONDS_IN_YEAR * 2.6294e6,  # the FromFile mode needs the radiative core (1.69 Myr on this track); earlier starts stall
         # Simulation end time, seconds (from years).
-        "final_time": SECONDS_IN_YEAR * 5.0e9,
+        "final_time": SECONDS_IN_YEAR * 1.5762e10,
     }
 
     # seconds (from years)
@@ -109,8 +115,10 @@ def effect_setup():
         "MAGNETIC_EFFECT_ENABLED": [False],
         "STAR_EVOLUTION_ENABLED": [True],
         # Stellar tides, one model at most: the kaula stellar tide reads SPECTRUM_FILE above.
-        "STAR_TIDES_KAULA_ENABLED": [True],
-        "STAR_TIDES_CTL_ENABLED": [False],
+        "STAR_TIDES_KAULA_ENABLED": [False],
+        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [False],
+        "STAR_TIDES_CTL_DYNAMICAL_ENABLED": [False],
+        "STAR_TIDES_CTL_ENABLED": [True],
         # Planetary tides, one model at most.
         "PLANET_TIDES_KAULA_ENABLED": [False],
         "PLANET_TIDES_CTL_ENABLED": [False],
@@ -132,7 +140,7 @@ def planet_setup(effects):
         # m
         "radius": [JUPITER_RADIUS],
         # m (from AU)
-        "semi_major_axis": [AU * x for x in [0.03]],
+        "semi_major_axis": [AU * x for x in [0.015, 0.016, 0.017, 0.018, 0.019, 0.020, 0.025, 0.030, 0.035, 0.040, 0.045, 0.050, 0.055, 0.060, 0.065, 0.070, 0.075, 0.080, 0.085, 0.090, 0.095]],
         "magnetic_field": [None],  # Do not edit.
     }
 
