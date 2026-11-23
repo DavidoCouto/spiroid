@@ -243,7 +243,7 @@ def star_setup(effects):
     if effects["STAR_TIDES_KAULA_ENABLED"]:
         star_base["kaula_spectrum_file"] = [SPECTRUM_FILE]
 
-    if effects["STAR_TIDES_CTL_ENABLED"]:
+    if effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"] or effects["STAR_TIDES_CTL_ENABLED"]:
         star_base["sigma_bar"] = [1.0e-6]
 
     return star_base
