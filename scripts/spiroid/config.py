@@ -140,8 +140,7 @@ def make_stars(star_base, effects):
         star_kaula = effects["STAR_TIDES_KAULA_ENABLED"]
         star_ctl_eq = effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"]
         star_ctl_dyn = effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"]
-        star_ctl = effects["STAR_TIDES_CTL_ENABLED"]
-        if star_kaula and (star_ctl_eq or star_ctl_dyn or star_ctl):
+        if star_kaula and (star_ctl_eq or star_ctl_dyn):
             raise ValueError(
                 "one tidal model per body: STAR_TIDES_KAULA_ENABLED and STAR_TIDES_CTL_ENABLED cannot both be enabled"
             )
@@ -164,29 +163,12 @@ def make_stars(star_base, effects):
 
         # Constant time lag stellar tide (Benbakoura et al. 2019): equilibrium tide with
         # sigma_bar_star plus the frequency-averaged dynamical tide.
-        if sum([star_ctl_eq, star_ctl_dyn, star_ctl]) > 1:
-            raise ValueError(
-                "Choose only one stellar CTL variant among STAR_TIDES_CTL_EQUILIBRIUM_ENABLED, "
-                "STAR_TIDES_CTL_DYNAMICAL_ENABLED and STAR_TIDES_CTL_ENABLED (both)"
-            )
-        if star_ctl:
+        if star_ctl_eq or star_ctl_dyn:
             body["tides"] = {
                 "StellarConstantTimeLag": [
-                    {"equilibrium": named["stellar_equilibrium_tide"]},
-                    {"inertial": named["stellar_dynamical_tide"]},
+                    {"equilibrium": named["stellar_equilibrium_tide"] if star_ctl_eq else "Disabled"},
+                    {"inertial": named["stellar_dynamical_tide"] if star_ctl_dyn else "Disabled"},
                 ]
-            }
-        elif star_ctl_eq:
-            body["tides"] = {
-                "StellarEquilibriumConstantTimeLag": {
-                    "equilibrium": named["stellar_equilibrium_tide"]
-                }
-            }
-        elif star_ctl_dyn:
-            body["tides"] = {
-                "StellarDynamicalConstantTimeLag": {
-                    "inertial": named["stellar_dynamical_tide"]
-                }
             }
 
 

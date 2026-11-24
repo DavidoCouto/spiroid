@@ -118,7 +118,6 @@ def effect_setup():
         "STAR_TIDES_KAULA_ENABLED": [False],
         "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [True],
         "STAR_TIDES_CTL_DYNAMICAL_ENABLED": [False],
-        "STAR_TIDES_CTL_ENABLED": [False],
         # Planetary tides, one model at most.
         "PLANET_TIDES_KAULA_ENABLED": [False],
         "PLANET_TIDES_CTL_ENABLED": [False],
@@ -245,10 +244,10 @@ def star_setup(effects):
     if effects["STAR_TIDES_KAULA_ENABLED"]:
         star_base["kaula_spectrum_file"] = [SPECTRUM_FILE]
 
-    if effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"] or effects["STAR_TIDES_CTL_ENABLED"]:
+    if effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"]:
         star_base["stellar_equilibrium_tide"] = [{"SigmaBarStar": 1.0e-6}]
     
-    if effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"] or effects["STAR_TIDES_CTL_ENABLED"]:
+    if effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"]:
         star_base["stellar_dynamical_tide"] = ["FrequencyAveraged"]
 
     return star_base
