@@ -19,6 +19,7 @@ pub enum TidalModel {
     StellarEquilibriumConstantTimeLag(StellarEquilibriumConstantTimeLag),
     StellarDynamicalConstantTimeLag(StellarDynamicalConstantTimeLag),
     StellarConstantTimeLag(StellarEquilibriumConstantTimeLag, StellarDynamicalConstantTimeLag),
+    KaulaWithEquilibrium(Kaula, StellarEquilibriumConstantTimeLag),
     // Planetary tide of Hut (1981) / Leconte et al. (2010): constant time lag k2 delta_t of
     // the planet, any eccentricity, coplanar. Planet only.
     PlanetaryConstantTimeLag(PlanetaryConstantTimeLag),
@@ -50,6 +51,22 @@ impl TidalModel {
             TidalModel::KaulaTides(kaula) => {
                 kaula.tidal_torque_on_deformed_body(star, planet, planet)
             }
+            TidalModel::KaulaWithEquilibrium(kaula, equilibrium) => {
+                kaula.tidal_torque_on_deformed_body(star, planet, planet)
+                + equilibrium.stellar_equilibrium_tidal_torque(star, planet)
+            }
+        }
+    }
+
+    /// Equilibrium torque (same a^-6 convention as `stellar_tidal_torque`) that is added on
+    /// top of the Kaula tide for `KaulaWithEquilibrium`, and 0 for every other model.
+    /// Used in physics.rs for the semi-major axis, since the Kaula orbit terms only know the Kaula part.
+    pub(crate) fn kaula_extra_equilibrium_torque(&self, star: &Star, planet: &Planet) -> f64 {
+        match self {
+            TidalModel::KaulaWithEquilibrium(_, equilibrium) => {
+                equilibrium.stellar_equilibrium_tidal_torque(star, planet)
+            }
+            _ => 0.0,
         }
     }
 
@@ -72,8 +89,11 @@ impl TidalModel {
         star: &Star,
         planet: &Planet,
     ) -> Result<()> {
-        if let &mut TidalModel::KaulaTides(ref mut kaula) = self {
-            kaula.refresh(time, star, planet, planet)?;
+        match self {
+            TidalModel::KaulaTides(kaula) | TidalModel::KaulaWithEquilibrium(kaula, _) => {
+                kaula.refresh(time, star, planet, planet)?;
+            }
+            _ => {}
         }
 
         Ok(())
@@ -94,13 +114,16 @@ impl TidalModel {
 
     /// Returns `true` if the `TidalModel` is `KaulaTides`.
     pub(crate) fn kaula_enabled(&self) -> bool {
-        matches!(&self, TidalModel::KaulaTides(_))
+        matches!(&self, TidalModel::KaulaTides(_) | TidalModel::KaulaWithEquilibrium(_, _)
+        )
     }
 
     /// Returns a reference to the `Kaula` struct if the `TidalModel` is `KaulaTides`.
     pub fn kaula_get(&self) -> Option<&Kaula> {
         match self {
-            TidalModel::KaulaTides(kaula) => Some(kaula),
+            TidalModel::KaulaTides(kaula) | TidalModel::KaulaWithEquilibrium(kaula, _) => {
+                Some(kaula)
+            }
             _ => None,
         }
     }
@@ -108,7 +131,9 @@ impl TidalModel {
     /// Returns a mutable reference to the `Kaula` struct if the `TidalModel` is `KaulaTides`.
     pub fn kaula_get_mut(&mut self) -> Option<&mut Kaula> {
         match self {
-            &mut TidalModel::KaulaTides(ref mut kaula) => Some(kaula),
+            TidalModel::KaulaTides(kaula) | TidalModel::KaulaWithEquilibrium(kaula, _) => {
+                Some(kaula)
+            }
             _ => None,
         }
     }

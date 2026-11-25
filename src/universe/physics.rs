@@ -43,7 +43,7 @@ pub(crate) fn force(
         Some(_) => planet_semi_major_axis_13_div_2_derivative_from_torque(
             planet,
             star,
-            star.magnetic_torque,
+            star.magnetic_torque + central_body.tides.kaula_extra_equilibrium_torque(star, planet),
         ),
     };
 

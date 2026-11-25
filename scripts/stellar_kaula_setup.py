@@ -115,8 +115,8 @@ def effect_setup():
         "MAGNETIC_EFFECT_ENABLED": [False],
         "STAR_EVOLUTION_ENABLED": [True],
         # Stellar tides, one model at most: the kaula stellar tide reads SPECTRUM_FILE above.
-        "STAR_TIDES_KAULA_ENABLED": [False],
-        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [True],
+        "STAR_TIDES_KAULA_ENABLED": [True],
+        "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": [False],
         "STAR_TIDES_CTL_DYNAMICAL_ENABLED": [False],
         # Planetary tides, one model at most.
         "PLANET_TIDES_KAULA_ENABLED": [False],
@@ -139,7 +139,7 @@ def planet_setup(effects):
         # m
         "radius": [JUPITER_RADIUS],
         # m (from AU)
-        "semi_major_axis": [AU * x for x in [0.015, 0.016, 0.017, 0.018, 0.019, 0.020, 0.025, 0.030, 0.035, 0.040, 0.045, 0.050, 0.055, 0.060, 0.065, 0.070, 0.075, 0.080, 0.085, 0.090, 0.095]],
+        "semi_major_axis": [AU * x for x in [0.015, 0.016, 0.017, 0.018, 0.019, 0.020, 0.021, 0.022, 0.023, 0.024, 0.025, 0.030, 0.035, 0.040, 0.045, 0.050, 0.055, 0.060, 0.065, 0.070, 0.075, 0.080, 0.085, 0.090, 0.095]],
         "magnetic_field": [None],  # Do not edit.
     }
 

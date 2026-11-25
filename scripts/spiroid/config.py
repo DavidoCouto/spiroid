@@ -140,9 +140,9 @@ def make_stars(star_base, effects):
         star_kaula = effects["STAR_TIDES_KAULA_ENABLED"]
         star_ctl_eq = effects["STAR_TIDES_CTL_EQUILIBRIUM_ENABLED"]
         star_ctl_dyn = effects["STAR_TIDES_CTL_DYNAMICAL_ENABLED"]
-        if star_kaula and (star_ctl_eq or star_ctl_dyn):
+        if star_kaula and star_ctl_dyn:
             raise ValueError(
-                "one tidal model per body: STAR_TIDES_KAULA_ENABLED and STAR_TIDES_CTL_ENABLED cannot both be enabled"
+                "one tidal model per body: STAR_TIDES_KAULA_ENABLED and STAR_TIDES_CTL_DYNAMICAL_ENABLED cannot both be enabled"
             )
 
         # Kaula stellar tide: the star is the deformed body, its love number spectrum
@@ -153,17 +153,25 @@ def make_stars(star_base, effects):
                 raise KeyError(
                     "star_setup must provide 'kaula_spectrum_file' when STAR_TIDES_KAULA_ENABLED"
                 )
-            body["tides"] = {
-                "KaulaTides": {
-                    "particle_type": {
-                        "StarConvectiveEnvelope": {"spectrum_file": named["kaula_spectrum_file"]}
-                    }
+            kaula_input = {
+                "particle_type": {
+                    "StarConvectiveEnvelope": {"spectrum_file": named["kaula_spectrum_file"]}
                 }
             }
 
+            if star_ctl_eq:
+                body["tides"] = {
+                    "KaulaWithEquilibrium": [
+                    kaula_input,
+                    {"equilibrium": named["stellar_equilibrium_tide"]},
+            ]
+        }
+            else:
+                body["tides"] = {"KaulaTides": kaula_input}
+
         # Constant time lag stellar tide (Benbakoura et al. 2019): equilibrium tide with
         # sigma_bar_star plus the frequency-averaged dynamical tide.
-        if star_ctl_eq or star_ctl_dyn:
+        if (star_ctl_eq or star_ctl_dyn) and not star_kaula:
             body["tides"] = {
                 "StellarConstantTimeLag": [
                     {"equilibrium": named["stellar_equilibrium_tide"] if star_ctl_eq else "Disabled"},
@@ -218,6 +226,7 @@ def generate_all_effect_combinations(input_dict):
         "MAGNETIC_EFFECT_ENABLED": "magnetism",
         "STAR_EVOLUTION_ENABLED": "star_evolution",
         "STAR_TIDES_KAULA_ENABLED": "star_kaula_tides",
+        "STAR_TIDES_KAULA_EQUILIBRIUM_ENABLED": "star_kaula_equilibrium_tides",
         "STAR_TIDES_CTL_EQUILIBRIUM_ENABLED": "star_ctl_equilibrium_tides",
         "STAR_TIDES_CTL_DYNAMICAL_ENABLED": "star_ctl_dynamical_tides",
         "STAR_TIDES_CTL_ENABLED": "star_ctl_both_tides",
